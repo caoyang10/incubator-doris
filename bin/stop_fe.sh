@@ -33,16 +33,25 @@ done < $DORIS_HOME/conf/fe.conf
 pidfile=$PID_DIR/fe.pid
 
 if [ -f $pidfile ]; then
-   pid=`cat $pidfile`
-   pidcomm=`ps -p $pid -o comm=`
-   
-   if [ "java" != "$pidcomm" ]; then
-       echo "ERROR: pid process may not be fe. "
-   fi
+    pid=`cat $pidfile`
+    pidcomm=`ps -p $pid -o comm=`
 
-   if kill -9 $pid > /dev/null 2>&1; then
-        echo "stop $pidcomm, and remove pid file. "
+    if [ "java" != "$pidcomm" ]; then
+        echo "ERROR: pid process may not be fe. "
         rm $pidfile
-   fi
+        exit 0
+    fi
+
+    if kill -0 $pid; then
+        if kill -9 $pid > /dev/null 2>&1; then
+            echo "stop $pidcomm, and remove pid file. "
+            rm $pidfile
+        fi
+    else
+        echo "Frontend already exit, remove pid file. "
+        rm $pidfile
+    fi
+else
+    echo "$pidfile does not exist"
 fi
 
