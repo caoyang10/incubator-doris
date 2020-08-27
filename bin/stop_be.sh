@@ -37,16 +37,14 @@ if [ -f $pidfile ]; then
     pidcomm=`ps -p $pid -o comm=`
     if [ "palo_be"x != "$pidcomm"x ]; then
         echo "ERROR: pid process may not be be. "
-        exit 1
+        rm $pidfile
+        exit 0
     fi
 
     if kill -0 $pid; then
         if kill -9 $pid > /dev/null 2>&1; then
             echo "stop $pidcomm, and remove pid file. "
             rm $pidfile
-            exit 0
-        else
-            exit 1
         fi
     else
         echo "Backend already exit, remove pid file. "
@@ -54,6 +52,5 @@ if [ -f $pidfile ]; then
     fi
 else
     echo "$pidfile does not exist"
-    exit 1
 fi
 
