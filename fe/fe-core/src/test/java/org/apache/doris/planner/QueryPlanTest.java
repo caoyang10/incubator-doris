@@ -335,6 +335,20 @@ public class QueryPlanTest {
                 ");");
 
         Config.enable_odbc_table = true;
+        createTable("create external table test.odbc_oracle\n" +
+                "(k1 int, k2 int)\n" +
+                "ENGINE=ODBC\n" +
+                "PROPERTIES (\n" +
+                "\"host\" = \"127.0.0.1\",\n" +
+                "\"port\" = \"3306\",\n" +
+                "\"user\" = \"root\",\n" +
+                "\"password\" = \"123\",\n" +
+                "\"database\" = \"db1\",\n" +
+                "\"table\" = \"tbl1\",\n" +
+                "\"driver\" = \"Oracle Driver\",\n" +
+                "\"odbc_type\" = \"oracle\"\n" +
+                ");");
+
         createTable("create external table test.odbc_mysql\n" +
                 "(k1 int, k2 int)\n" +
                 "ENGINE=ODBC\n" +
