@@ -749,7 +749,7 @@ public class Config extends ConfigBase {
      * Do not set this if you know what you are doing.
      */
     @ConfField(mutable = true)
-    public static int expr_children_limit = 10000;
+    public static int expr_children_limit = 120000;
     /**
      * Limit on the depth of an expr tree.
      * Exceed this limit may cause long analysis time while holding db read lock.
