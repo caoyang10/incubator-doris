@@ -83,7 +83,9 @@ OLAPStatus CumulativeCompaction::pick_rowsets_to_compact() {
         return OLAP_ERR_CUMULATIVE_NO_SUITABLE_VERSIONS;
     }
 
-    RETURN_NOT_OK(check_version_continuity(candidate_rowsets));
+    std::sort(candidate_rowsets.begin(), candidate_rowsets.end(), Rowset::comparator);
+    // RETURN_NOT_OK(check_version_continuity(candidate_rowsets));
+    RETURN_NOT_OK(find_longest_consecutive_version(&candidate_rowsets));
 
     size_t compaction_score = 0;
     int transient_size = _tablet->cumulative_compaction_policy()->pick_input_rowsets(
