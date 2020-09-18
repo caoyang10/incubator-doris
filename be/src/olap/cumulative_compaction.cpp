@@ -82,7 +82,8 @@ OLAPStatus CumulativeCompaction::pick_rowsets_to_compact() {
     }
 
     std::sort(candidate_rowsets.begin(), candidate_rowsets.end(), Rowset::comparator);
-    RETURN_NOT_OK(check_version_continuity(candidate_rowsets));
+    // RETURN_NOT_OK(check_version_continuity(candidate_rowsets));
+    RETURN_NOT_OK(find_longest_consecutive_version(&candidate_rowsets));
 
     std::vector<RowsetSharedPtr> transient_rowsets;
     size_t compaction_score = 0;

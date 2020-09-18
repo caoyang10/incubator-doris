@@ -181,6 +181,29 @@ OLAPStatus Compaction::gc_unused_rowsets() {
     return OLAP_SUCCESS;
 }
 
+OLAPStatus Compaction::find_longest_consecutive_version(vector<RowsetSharedPtr>* rowsets) {
+    if (rowsets->empty()) {
+        return OLAP_SUCCESS;
+    }
+    RowsetSharedPtr prev_rowset = rowsets->front();
+    size_t i = 1;
+    for (; i < rowsets->size(); ++i) {
+        RowsetSharedPtr rowset = (*rowsets)[i];
+        if (rowset->start_version() != prev_rowset->end_version() + 1) {
+            LOG(WARNING) << "There are missed versions among rowsets. "
+                         << "prev_rowset verison=" << prev_rowset->start_version()
+                         << "-" << prev_rowset->end_version()
+                         << ", rowset version=" << rowset->start_version()
+                         << "-" << rowset->end_version();
+            break;
+        }
+        prev_rowset = rowset;
+    }
+
+    rowsets->resize(i);
+    return OLAP_SUCCESS;
+}
+
 OLAPStatus Compaction::check_version_continuity(const vector<RowsetSharedPtr>& rowsets) {
     RowsetSharedPtr prev_rowset = rowsets.front();
     for (size_t i = 1; i < rowsets.size(); ++i) {
