@@ -571,5 +571,6 @@ install(FILES
 
 install(FILES
     ${BASE_DIR}/../conf/be.conf
+    ${BASE_DIR}/../conf/odbcinst.ini
     DESTINATION ${OUTPUT_DIR}/conf)
 
