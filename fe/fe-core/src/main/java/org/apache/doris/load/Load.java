@@ -2011,6 +2011,8 @@ public class Load {
                 jobInfo.add(TimeUtils.longToTimeString(loadJob.getLoadFinishTimeMs()));
                 // tracking url
                 jobInfo.add(status.getTrackingUrl());
+                // job details
+                jobInfo.add("");
 
                 loadJobInfos.add(jobInfo);
             } // end for loadJobs
