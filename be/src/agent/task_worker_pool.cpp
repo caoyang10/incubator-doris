@@ -1164,6 +1164,7 @@ void* TaskWorkerPool::_report_tablet_worker_thread_callback(void* arg_this) {
                 std::max(DorisMetrics::instance()->tablet_cumulative_max_compaction_score->value(),
                          DorisMetrics::instance()->tablet_base_max_compaction_score->value());
         request.__set_tablet_max_compaction_score(max_compaction_score);
+        request.__set_report_version(_s_report_version);
 
         TMasterResult result;
         status = worker_pool_this->_master_client->report(request, &result);
