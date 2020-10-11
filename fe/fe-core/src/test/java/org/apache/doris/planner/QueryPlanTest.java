@@ -1081,6 +1081,44 @@ public class QueryPlanTest {
     }
 
     @Test
+    public void testPushDownOfOdbcTable() throws Exception {
+        connectContext.setDatabase("default_cluster:test");
+
+        // MySQL ODBC table can push down all filter
+        String queryStr = "explain select * from odbc_mysql where k1 > 10 and abs(k1) > 10";
+        String explainString = UtFrameUtils.getSQLPlanOrErrorMsg(connectContext, queryStr);
+        Assert.assertTrue(explainString.contains("`k1` > 10"));
+        Assert.assertTrue(explainString.contains("abs(`k1`) > 10"));
+
+        // now we do not support odbc scan node push down function call, except MySQL ODBC table
+        // this table is Oracle ODBC table, so abs(k1) should not be pushed down
+        queryStr = "explain select * from odbc_oracle where k1 > 10 and abs(k1) > 10";
+        explainString = UtFrameUtils.getSQLPlanOrErrorMsg(connectContext, queryStr);
+        Assert.assertTrue(explainString.contains("k1 > 10"));
+        Assert.assertTrue(!explainString.contains("abs(k1) > 10"));
+    }
+
+    @Test
+    public void testLimitOfExternalTable() throws Exception {
+        connectContext.setDatabase("default_cluster:test");
+
+        // ODBC table (MySQL)
+        String queryStr = "explain select * from odbc_mysql where k1 > 10 and abs(k1) > 10 limit 10";
+        String explainString = UtFrameUtils.getSQLPlanOrErrorMsg(connectContext, queryStr);
+        Assert.assertTrue(explainString.contains("LIMIT 10"));
+
+        // ODBC table (Oracle)
+        queryStr = "explain select * from odbc_oracle where k1 > 10 and abs(k1) > 10 limit 10";
+        explainString = UtFrameUtils.getSQLPlanOrErrorMsg(connectContext, queryStr);
+        Assert.assertTrue(explainString.contains("ROWNUM <= 10"));
+
+        // MySQL table
+        queryStr = "explain select * from mysql_table where k1 > 10 and abs(k1) > 10 limit 10";
+        explainString = UtFrameUtils.getSQLPlanOrErrorMsg(connectContext, queryStr);
+        Assert.assertTrue(explainString.contains("LIMIT 10"));
+    }
+
+    @Test
     public void testPreferBroadcastJoin() throws Exception {
         connectContext.setDatabase("default_cluster:test");
         String queryStr = "explain select * from (select k1 from jointest group by k1)t2, jointest t1 where t1.k1 = t2.k1";

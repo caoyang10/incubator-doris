@@ -184,6 +184,36 @@ public class OdbcTable extends Table {
         return odbcTableTypeName;
     }
 
+    public String getConnectString() {
+        String connectString = "";
+        // different database have different connection string
+        switch (getOdbcTableType()) {
+            case ORACLE:
+                connectString = String.format("Driver=%s;Dbq=//%s:%s/%s;DataBase=%s;Uid=%s;Pwd=%s;charset=%s",
+                        getOdbcDriver(),
+                        getHost(),
+                        getPort(),
+                        getOdbcDatabaseName(),
+                        getOdbcDatabaseName(),
+                        getUserName(),
+                        getPasswd(),
+                        "utf8");
+                break;
+            case MYSQL:
+                connectString = String.format("Driver=%s;Server=%s;Port=%s;DataBase=%s;Uid=%s;Pwd=%s;charset=%s",
+                        getOdbcDriver(),
+                        getHost(),
+                        getPort(),
+                        getOdbcDatabaseName(),
+                        getUserName(),
+                        getPasswd(),
+                        "utf8");
+                break;
+            default:
+        }
+        return connectString;
+    }
+
     public TOdbcTableType getOdbcTableType() {
         return TABLE_TYPE_MAP.get(odbcTableTypeName);
     }
