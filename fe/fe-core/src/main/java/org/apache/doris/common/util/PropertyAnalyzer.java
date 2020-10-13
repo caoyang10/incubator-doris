@@ -87,6 +87,8 @@ public class PropertyAnalyzer {
 
     public static final String PROPERTIES_TYPE = "type";
 
+    public static final String PROPERTIES_SWAP_TABLE = "swap";
+
     public static DataProperty analyzeDataProperty(Map<String, String> properties, DataProperty oldDataProperty)
             throws AnalysisException {
         if (properties == null) {
