@@ -788,7 +788,7 @@ public class SystemInfoService {
             backends.add(list.get(0));
         }
 
-        Collections.shuffle(backends);
+//        Collections.shuffle(backends);
 
         List<Long> backendIds = Lists.newArrayList();
         // get last backend index
