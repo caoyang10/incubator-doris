@@ -58,8 +58,20 @@ public class OdbcScanNode extends ScanNode {
             case MYSQL:
                 return mysqlProperName(name);
         }
-
         return name;
+    }
+
+    // Now some database have different function call like doris, now doris do not
+    // push down the function call except MYSQL
+    private static boolean shouldPushDownConjunct(TOdbcTableType tableType, Expr expr) {
+        if (!tableType.equals(TOdbcTableType.MYSQL)) {
+            List<FunctionCallExpr> fnExprList = Lists.newArrayList();
+            expr.collect(FunctionCallExpr.class, fnExprList);
+            if (!fnExprList.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private final List<String> columns = new ArrayList<String>();
@@ -101,16 +113,22 @@ public class OdbcScanNode extends ScanNode {
         return output.toString();
     }
 
+    // only all conjuncts be pushed down as filter, we can
+    // push down limit operation to ODBC table
+    private boolean shouldPushDownLimit() {
+        return limit != -1 && conjuncts.isEmpty();
+    }
+
     private String getOdbcQueryStr() {
         StringBuilder sql = new StringBuilder("SELECT ");
 
         // Oracle use the where clause to do top n
-        if (limit != -1 && odbcType == TOdbcTableType.ORACLE) {
+        if (shouldPushDownLimit() && odbcType == TOdbcTableType.ORACLE) {
             filters.add("ROWNUM <= " + limit);
         }
 
         // MSSQL use select top to do top n
-        if (limit != -1 && odbcType == TOdbcTableType.SQLSERVER) {
+        if (shouldPushDownLimit() && odbcType == TOdbcTableType.SQLSERVER) {
             sql.append("TOP " + limit + " ");
         }
 
@@ -124,7 +142,7 @@ public class OdbcScanNode extends ScanNode {
         }
 
         // Other DataBase use limit do top n
-        if (limit != -1 && (odbcType == TOdbcTableType.MYSQL || odbcType == TOdbcTableType.POSTGRESQL || odbcType == TOdbcTableType.MONGODB) ) {
+        if (shouldPushDownLimit() && (odbcType == TOdbcTableType.MYSQL || odbcType == TOdbcTableType.POSTGRESQL || odbcType == TOdbcTableType.MONGODB) ) {
             sql.append(" LIMIT " + limit);
         }
         
@@ -162,8 +180,16 @@ public class OdbcScanNode extends ScanNode {
         }
         ArrayList<Expr> odbcConjuncts = Expr.cloneList(conjuncts, sMap);
         for (Expr p : odbcConjuncts) {
+<<<<<<< HEAD
             String filter = p.toMySql();
             filters.add(filter);
+=======
+            if (shouldPushDownConjunct(odbcType, p)) {
+                String filter = p.toMySql();
+                filters.add(filter);
+                conjuncts.remove(p);
+            }
+>>>>>>> 349cc9ef1... [Bug] Do not push down limit operation when ODBC table do not push all conjunct as filter. (#4764)
         }
     }
 
