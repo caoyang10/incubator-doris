@@ -136,6 +136,10 @@ public class Table extends MetaObject implements Writable {
         return name;
     }
 
+    public void setName(String newName) {
+        name = newName;
+    }
+
     public TableType getType() {
         return type;
     }
@@ -148,6 +152,7 @@ public class Table extends MetaObject implements Writable {
     public List<Column> getBaseSchema() {
         return fullSchema;
     }
+
     public List<Column> getBaseSchema(boolean full) {
         if (full) {
             return fullSchema;

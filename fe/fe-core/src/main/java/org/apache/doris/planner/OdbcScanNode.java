@@ -180,16 +180,11 @@ public class OdbcScanNode extends ScanNode {
         }
         ArrayList<Expr> odbcConjuncts = Expr.cloneList(conjuncts, sMap);
         for (Expr p : odbcConjuncts) {
-<<<<<<< HEAD
-            String filter = p.toMySql();
-            filters.add(filter);
-=======
             if (shouldPushDownConjunct(odbcType, p)) {
                 String filter = p.toMySql();
                 filters.add(filter);
                 conjuncts.remove(p);
             }
->>>>>>> 349cc9ef1... [Bug] Do not push down limit operation when ODBC table do not push all conjunct as filter. (#4764)
         }
     }
 
