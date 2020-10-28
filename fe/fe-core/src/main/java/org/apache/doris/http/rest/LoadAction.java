@@ -35,6 +35,7 @@ import com.google.common.base.Strings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
 
 import io.netty.handler.codec.http.HttpHeaders;
@@ -115,7 +116,7 @@ public class LoadAction extends RestBaseAction {
         }
 
         // Choose a backend sequentially.
-        List<Long> backendIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(1, true, false, clusterName);
+        List<Long> backendIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(1, true, false, clusterName, new HashMap<>());
         if (backendIds == null) {
             throw new DdlException("No backend alive.");
         }

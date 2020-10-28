@@ -727,22 +727,36 @@ public class SystemInfoService {
     }
 
     public List<Long> seqChooseBackendIdsByStorageMedium(int backendNum, boolean needAlive, boolean isCreate,
-                                                                      String clusterName, TStorageMedium storageMedium) {
+                                                                      String clusterName, Map<Long, Integer> tabletDist, TStorageMedium storageMedium) {
         final List<Backend> backends = getClusterBackends(clusterName).stream().filter(v -> !v.diskExceedLimitByStorageMedium(storageMedium)).collect(Collectors.toList());
-        return seqChooseBackendIds(backendNum, needAlive, isCreate, clusterName, backends);
+        for (Backend backend : backends) {
+            if (needAlive && backend.isAlive() && !backend.isDecommissioned()) {
+                if (!tabletDist.containsKey(backend.getId())) {
+                    tabletDist.put(backend.getId(), 0);
+                }
+            }
+        }
+        return seqChooseBackendIds(backendNum, needAlive, isCreate, clusterName, backends, tabletDist);
     }
 
     public List<Long> seqChooseBackendIds(int backendNum, boolean needAlive, boolean isCreate,
-                                                       String clusterName) {
+                                                       String clusterName, Map<Long, Integer> tabletDist) {
         final List<Backend> backends = getClusterBackends(clusterName).stream().filter(v -> !v.diskExceedLimit()).collect(Collectors.toList());
-        return seqChooseBackendIds(backendNum, needAlive, isCreate, clusterName, backends);
+        for (Backend backend : backends) {
+            if (needAlive && backend.isAlive() && !backend.isDecommissioned()) {
+                if (!tabletDist.containsKey(backend.getId())) {
+                    tabletDist.put(backend.getId(), 0);
+                }
+            }
+        }
+        return seqChooseBackendIds(backendNum, needAlive, isCreate, clusterName, backends, tabletDist);
     }
 
     // choose backends by round robin
     // return null if not enough backend
     // use synchronized to run serially
     public synchronized List<Long> seqChooseBackendIds(int backendNum, boolean needAlive, boolean isCreate,
-                                                       String clusterName, final List<Backend> srcBackends) {
+                                                       String clusterName, final List<Backend> srcBackends, Map<Long, Integer> tabletDist) {
         long lastBackendId;
 
         if (clusterName.equals(DEFAULT_CLUSTER)) {
@@ -805,7 +819,7 @@ public class SystemInfoService {
         index = -1;
         boolean failed = false;
         // 2 cycle at most
-        int maxIndex = 2 * backends.size();
+//        int maxIndex = 2 * backends.size();
         while (iterator.hasNext() && backendIds.size() < backendNum) {
             Backend backend = iterator.next();
             index++;
@@ -813,21 +827,26 @@ public class SystemInfoService {
                 continue;
             }
 
-            if (index > maxIndex) {
-                failed = true;
-                break;
-            }
+//            if (index > maxIndex) {
+//                failed = true;
+//                break;
+//            }
 
+            long backendId = backend.getId();
             if (needAlive) {
                 if (!backend.isAlive() || backend.isDecommissioned()) {
                     continue;
                 }
+                int minValue = Collections.min(tabletDist.values());
+                if (tabletDist.get(backendId) - minValue >= 1) {
+                    continue;
+                }
             }
 
-            long backendId = backend.getId();
             if (!backendIds.contains(backendId)) {
                 backendIds.add(backendId);
                 lastBackendId = backendId;
+                tabletDist.put(backendId, tabletDist.getOrDefault(backendId, 0) + 1);
             } else {
                 failed = true;
                 break;
@@ -858,7 +877,7 @@ public class SystemInfoService {
 
         // debug
         for (Backend backend : backends) {
-            LOG.debug("random select: {}", backend.toString());
+            LOG.info("random select: {}", backend.toString());
         }
 
         return null;

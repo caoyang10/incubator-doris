@@ -4258,6 +4258,7 @@ public class Catalog {
             if (chooseBackendsArbitrary) {
                 backendsPerBucketSeq = Lists.newArrayList();
             }
+            Map<Long, Integer> tabletDist = new HashMap<>();
             for (int i = 0; i < distributionInfo.getBucketNum(); ++i) {
                 // create a new tablet with random chosen backends
                 Tablet tablet = new Tablet(getNextId());
@@ -4272,9 +4273,9 @@ public class Catalog {
                     // This is the first colocate table in the group, or just a normal table,
                     // randomly choose backends
                     if (Config.enable_strict_storage_medium_check) {
-                        chosenBackendIds = chosenBackendIdBySeq(replicationNum, clusterName, tabletMeta.getStorageMedium());
+                        chosenBackendIds = chosenBackendIdBySeq(replicationNum, clusterName, tabletDist, tabletMeta.getStorageMedium());
                     } else {
-                        chosenBackendIds = chosenBackendIdBySeq(replicationNum, clusterName);
+                        chosenBackendIds = chosenBackendIdBySeq(replicationNum, clusterName, tabletDist);
                     }
                     backendsPerBucketSeq.add(chosenBackendIds);
                 } else {
@@ -4301,18 +4302,26 @@ public class Catalog {
         }
     }
 
-    // create replicas for tablet with random chosen backends
     private List<Long> chosenBackendIdBySeq(int replicationNum, String clusterName, TStorageMedium storageMedium) throws DdlException {
+        return chosenBackendIdBySeq(replicationNum, clusterName, new HashMap<>(), storageMedium);
+    }
+
+    private List<Long> chosenBackendIdBySeq(int replicationNum, String clusterName) throws DdlException {
+        return chosenBackendIdBySeq(replicationNum, clusterName, new HashMap<>());
+    }
+
+    // create replicas for tablet with random chosen backends
+    private List<Long> chosenBackendIdBySeq(int replicationNum, String clusterName, Map<Long, Integer> tabletDist, TStorageMedium storageMedium) throws DdlException {
         List<Long> chosenBackendIds = Catalog.getCurrentSystemInfo().seqChooseBackendIdsByStorageMedium(replicationNum,
-                true, true, clusterName, storageMedium);
+                true, true, clusterName, tabletDist, storageMedium);
         if (chosenBackendIds == null) {
             throw new DdlException("Failed to find enough host with storage medium is " + storageMedium + " in all backends. need: " + replicationNum);
         }
         return chosenBackendIds;
     }
 
-    private List<Long> chosenBackendIdBySeq(int replicationNum, String clusterName) throws DdlException {
-        List<Long> chosenBackendIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(replicationNum, true, true, clusterName);
+    private List<Long> chosenBackendIdBySeq(int replicationNum, String clusterName, Map<Long, Integer> tabletDist) throws DdlException {
+        List<Long> chosenBackendIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(replicationNum, true, true, clusterName, tabletDist);
         if (chosenBackendIds == null) {
             throw new DdlException("Failed to find enough host in all backends. need: " + replicationNum);
         }

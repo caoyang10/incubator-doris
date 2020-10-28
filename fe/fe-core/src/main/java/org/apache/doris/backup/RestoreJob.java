@@ -80,6 +80,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -825,6 +826,7 @@ public class RestoreJob extends AbstractJob {
 
         // tablets
         for (MaterializedIndex remoteIdx : remotePart.getMaterializedIndices(IndexExtState.VISIBLE)) {
+            Map<Long, Integer> tabletDist = new HashMap<>();
             int schemaHash = remoteTbl.getSchemaHashByIndexId(remoteIdx.getId());
             int remotetabletSize = remoteIdx.getTablets().size();
             remoteIdx.clearTabletsForRestore();
@@ -837,7 +839,7 @@ public class RestoreJob extends AbstractJob {
 
                 // replicas
                 List<Long> beIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(restoreReplicationNum, true,
-                                                                                      true, clusterName);
+                                                                                      true, clusterName, tabletDist);
                 if (beIds == null) {
                     status = new Status(ErrCode.COMMON_ERROR,
                             "failed to get enough backends for creating replica of tablet "

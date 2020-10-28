@@ -461,6 +461,7 @@ public class OlapTable extends Table {
         // for each partition, reset rollup index map
         for (Map.Entry<Long, Partition> entry : idToPartition.entrySet()) {
             Partition partition = entry.getValue();
+            Map<Long, Integer> tabletDist = new HashMap<>();
             for (Map.Entry<Long, String> entry2 : origIdxIdToName.entrySet()) {
                 MaterializedIndex idx = partition.getIndex(entry2.getKey());
                 long newIdxId = indexNameToId.get(entry2.getValue());
@@ -483,7 +484,7 @@ public class OlapTable extends Table {
                     // replicas
                     List<Long> beIds = Catalog.getCurrentSystemInfo().seqChooseBackendIds(partitionInfo.getReplicationNum(entry.getKey()),
                                                                                           true, true,
-                                                                                          db.getClusterName());
+                                                                                          db.getClusterName(),tabletDist);
                     if (beIds == null) {
                         return new Status(ErrCode.COMMON_ERROR, "failed to find "
                                 + partitionInfo.getReplicationNum(entry.getKey())

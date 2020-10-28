@@ -55,6 +55,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,7 +157,7 @@ public class RestoreJobTest {
         
         new Expectations() {
             {
-                systemInfoService.seqChooseBackendIds(anyInt, anyBoolean, anyBoolean, anyString);
+                systemInfoService.seqChooseBackendIds(anyInt, anyBoolean, anyBoolean, anyString, new HashMap<>());
                 minTimes = 0;
                 result = new Delegate() {
                     public synchronized List<Long> seqChooseBackendIds(int backendNum, boolean needAlive,
