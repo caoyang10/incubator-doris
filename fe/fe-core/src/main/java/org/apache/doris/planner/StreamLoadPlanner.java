@@ -41,7 +41,6 @@ import org.apache.doris.common.ErrorReport;
 import org.apache.doris.common.UserException;
 import org.apache.doris.load.LoadErrorHub;
 import org.apache.doris.load.loadv2.LoadTask;
-import org.apache.doris.load.routineload.RoutineLoadJob;
 import org.apache.doris.task.LoadTaskInfo;
 import org.apache.doris.thrift.PaloInternalServiceVersion;
 import org.apache.doris.thrift.TExecPlanFragmentParams;
@@ -227,7 +226,7 @@ public class StreamLoadPlanner {
                     }
                 } else {
                     Date now = new Date();
-                    Date upperDate = new Date(now.getTime() + RoutineLoadJob.DEFAULT_MAX_INTERVAL_SECOND*1000*2);
+                    Date upperDate = new Date(now.getTime() + 60*1000*2);
                     Date lowerDate = new Date(upperDate.getTime() - windowIntervalSec*1000);
                     PartitionValue lowerValue = new PartitionValue(DATE_FORMAT.format(lowerDate));
                     PartitionValue upperValue = new PartitionValue(DATE_FORMAT.format(upperDate));
