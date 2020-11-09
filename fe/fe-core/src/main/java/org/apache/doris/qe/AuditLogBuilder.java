@@ -17,6 +17,7 @@
 
 package org.apache.doris.qe;
 
+import com.google.gson.Gson;
 import org.apache.doris.common.AuditLog;
 import org.apache.doris.common.Config;
 import org.apache.doris.common.util.DigitalVersion;
@@ -33,6 +34,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 // A builtin Audit plugin, registered when FE start.
 // it will receive "AFTER_QUERY" AuditEventy and print it as a log in fe.audit.log
@@ -59,7 +63,8 @@ public class AuditLogBuilder extends Plugin implements AuditPlugin {
     @Override
     public void exec(AuditEvent event) {
         try {
-            StringBuilder sb = new StringBuilder();
+//            StringBuilder sb = new StringBuilder();
+            Map<String, Object> logMap = new HashMap<>();
             long queryTime = 0;
             // get each field with annotation "AuditField" in AuditEvent
             // and assemble them into a string.
@@ -77,11 +82,15 @@ public class AuditLogBuilder extends Plugin implements AuditPlugin {
                 if (af.value().equals("Time")) {
                     queryTime = (long) f.get(event);
                 }
-                sb.append("|").append(af.value()).append("=").append(String.valueOf(f.get(event)));
+                logMap.put(af.value(), f.get(event));
+//                sb.append("|").append(af.value()).append("=").append(String.valueOf(f.get(event)));
             }
+            logMap.put("queryTime", new Date().getTime());
 
-            String auditLog = sb.toString();
+//            String auditLog = sb.toString();
+            String auditLog = new Gson().toJson(logMap);
             AuditLog.getQueryAudit().log(auditLog);
+
             // slow query
             if (queryTime > Config.qe_slow_log_ms) {
                 AuditLog.getSlowAudit().log(auditLog);

@@ -84,7 +84,15 @@ public class Log4jConfig extends XmlConfiguration {
             "          <IfLastModified age=\"${audit_log_delete_age}\" />\n" +
             "        </Delete>\n" +
             "      </DefaultRolloverStrategy>\n" +
-            "    </RollingFile>\n" + 
+            "    </RollingFile>\n" +
+            "    <Kafka name=\"DorisKafka\" topic=\"doris_ad_query_log\" syncSend=\"false\">\n" +
+            "      <PatternLayout pattern=\"%message\"/>\n" +
+            "      <Property name=\"bootstrap.servers\">bjlt-h1090.sy:9092,bjlt-h1091.sy:9092,bjlt-h1092.sy:9092,bjlt-h1093.sy:9092</Property>\n" +
+            "      <Property name=\"compression.type\">lz4</Property>\n" +
+            "      <Property name=\"max.request.size\">41943040</Property>\n" +
+            "      <Property name=\"max.block.ms\">5000</Property>\n" +
+            "      <Property name=\"request.timeout.ms\">5000</Property>\n" +
+            "    </Kafka>\n" +
             "  </Appenders>\n" + 
             "  <Loggers>\n" + 
             "    <Root level=\"${sys_log_level}\">\n" + 
@@ -92,8 +100,9 @@ public class Log4jConfig extends XmlConfiguration {
             "      <AppenderRef ref=\"SysWF\" level=\"WARN\"/>\n" + 
             "    </Root>\n" + 
             "    <Logger name=\"audit\" level=\"ERROR\" additivity=\"false\">\n" + 
-            "      <AppenderRef ref=\"Auditfile\"/>\n" + 
-            "    </Logger>\n" + 
+            "      <AppenderRef ref=\"Auditfile\"/>\n" +
+            "      <AppenderRef ref=\"DorisKafka\"/>\n" +
+            "    </Logger>\n" +
             "    <Logger name=\"org.apache.thrift\" level=\"DEBUG\"> \n" + 
             "      <AppenderRef ref=\"Sys\"/>\n" + 
             "    </Logger>\n" + 
