@@ -64,6 +64,7 @@ public class FileSystemManager {
             .getLogger(FileSystemManager.class.getName());
     // supported scheme
     private static final String HDFS_SCHEME = "hdfs";
+    private static final String VIEW_SCHEME = "viewfs";
     private static final String S3A_SCHEME = "s3a";
 
     private static final String USER_NAME_KEY = "username";
@@ -147,8 +148,8 @@ public class FileSystemManager {
                 "invalid path. scheme is null");
         }
         BrokerFileSystem brokerFileSystem = null;
-        if (scheme.equals(HDFS_SCHEME)) {
-            brokerFileSystem = getDistributedFileSystem(path, properties);
+        if (scheme.equals(HDFS_SCHEME) || scheme.equals(VIEW_SCHEME)) {
+            brokerFileSystem = getDistributedFileSystem(path, properties, scheme);
         } else if (scheme.equals(S3A_SCHEME)) {
             brokerFileSystem = getS3AFileSystem(path, properties);
         } else {
@@ -170,9 +171,9 @@ public class FileSystemManager {
      * @throws URISyntaxException
      * @throws Exception
      */
-    public BrokerFileSystem getDistributedFileSystem(String path, Map<String, String> properties) {
+    public BrokerFileSystem getDistributedFileSystem(String path, Map<String, String> properties, String scheme) {
         WildcardURI pathUri = new WildcardURI(path);
-        String host = HDFS_SCHEME + "://" + pathUri.getAuthority();
+        String host = scheme + "://" + pathUri.getAuthority();
         if (Strings.isNullOrEmpty(pathUri.getAuthority())) {
             if (properties.containsKey(FS_DEFAULTFS_KEY)) {
                 host = properties.get(FS_DEFAULTFS_KEY);
