@@ -53,17 +53,22 @@ public:
         for (auto i = _objects.rbegin(); i != _objects.rend(); ++i) {
             delete *i;
         }
+//        for (auto& p : _objects) {
+//            delete p;
+//            p = nullptr;
+//        }
         _objects.clear();
     }
 
     // Absorb all objects from src pool
     // Note: This method is not thread safe
     void acquire_data(ObjectPool* src) {
-        _objects.insert(_objects.end(), src->_objects.begin(), src->_objects.end());
-        src->_objects.clear();
+        ElementVector tmp = src->release();
+        boost::lock_guard<SpinLock> l(_lock);
+        _objects.insert(_objects.end(), tmp.begin(), tmp.end());
+//        src->_objects.clear();
     }
 
-private:
     struct GenericElement {
         virtual ~GenericElement() {}
     };
@@ -77,10 +82,19 @@ private:
 
         T* t;
     };
-
     typedef std::vector<GenericElement*> ElementVector;
+
+    ElementVector release() {
+        boost::lock_guard<SpinLock> l(_lock);
+        ElementVector result;
+        _objects.swap(result);
+        return result;
+    }
+
+private:
     ElementVector _objects;
     SpinLock _lock;
+
 };
 
 }
