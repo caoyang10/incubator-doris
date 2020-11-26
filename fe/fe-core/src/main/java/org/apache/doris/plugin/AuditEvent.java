@@ -17,6 +17,8 @@
 
 package org.apache.doris.plugin;
 
+import org.apache.doris.common.Config;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -75,6 +77,8 @@ public class AuditEvent {
     public String feIp = "";
     @AuditField(value = "Stmt")
     public String stmt = "";
+    @AuditField(value = "Cluster")
+    public String cluster = Config.cluster_name;
 
     public static class AuditEventBuilder {
 
